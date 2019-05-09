@@ -37,6 +37,7 @@ import os
 import errno
 import threading, time
 from datetime import timedelta
+from dateutil.parser import parse
 import re, tempfile
 import Queue # thread-safe
 ########## IMPORTANT #####################
@@ -162,7 +163,8 @@ def runjob(jobid=None, chanid=None, starttime=None, tzoffset=None):
         utcstarttime = job.starttime
     else:
         job=None;
-        utcstarttime = datetime.strptime(starttime, "%Y%m%d%H%M%S")
+        #utcstarttime = datetime.strptime(starttime, "%Y%m%d%H%M%S%z")
+        utcstarttime = parse(starttime)
 	utcstarttime = utcstarttime + timedelta(hours=tzoffset)
 
     if debug:
