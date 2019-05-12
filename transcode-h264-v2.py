@@ -685,7 +685,7 @@ def main():
         sys.exit(1)
 
 if __name__ == '__main__':
-    debug = True
-    sys.stdout = open('/home/mythtv/logfile','a')
-    print 'Starting ', str(sys.argv)
+#    debug = True
+#    sys.stdout = open('/home/mythtv/logfile','a')
+#    print 'Starting ', str(sys.argv)
     main()
