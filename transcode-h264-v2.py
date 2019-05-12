@@ -646,6 +646,11 @@ def encode(jobid=None, db=None, job=None,
         if jobid:
             job.update({'status':job.ERRORED, 'comment':'Transcoding to mp4 failed'})
         procqueue.put(CleanExit)
+        os.remove(tmpfile)
+        try:
+            os.remove('%s.map' % tmpfile)
+        except OSError:
+            pass
         sys.exit(e.retcode)
 
 def wrapper(func, args, res):
@@ -680,4 +685,7 @@ def main():
         sys.exit(1)
 
 if __name__ == '__main__':
+    debug = True
+    sys.stdout = open('/home/mythtv/logfile','a')
+    print 'Starting ', str(sys.argv)
     main()
