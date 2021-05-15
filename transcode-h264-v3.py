@@ -121,7 +121,7 @@ abitrate_param_HD='-c:a copy'
 # if non-HD, encode audio to AAC with libfdk_aac at a bitrate of 128kbps
 abitrate_param_nonHD = '-c:a libfdk_aac -b:a 128k'
 
-# to convert non-HD audio to AAC using ffmpeg's aac encoder	
+# to convert non-HD audio to AAC using ffmpeg's aac encoder
 #abitrate_param_nonHD='-strict -2'
 
 # TODO use -crf 20 -maxrate 400k -bufsize 1835k
@@ -165,7 +165,7 @@ def runjob(jobid=None, chanid=None, starttime=None, tzoffset=None):
         job=None;
         #utcstarttime = datetime.strptime(starttime, "%Y%m%d%H%M%S%z")
         utcstarttime = parse(starttime)
-	utcstarttime = utcstarttime + timedelta(hours=tzoffset)
+        utcstarttime = utcstarttime + timedelta(hours=tzoffset)
 
     if debug:
         print('chanid "%s"' % chanid)
@@ -191,7 +191,7 @@ def runjob(jobid=None, chanid=None, starttime=None, tzoffset=None):
             for index,jobitem in reversed(list(enumerate(db.searchJobs(chanid=chanid, starttime=starttime_datetime)))):
                 if jobitem.type == jobitem.COMMFLAG:  # Commercial flagging job
                     if debug:
-	                print('Commercial flagging job detected with status %s' % jobitem.status)
+                        print('Commercial flagging job detected with status %s' % jobitem.status)
                     if jobitem.status == jobitem.RUNNING: # status = RUNNING?
                         job.update({'status':job.PAUSED, 
                                     'comment':'Waited %d secs for the commercial flagging job' % (waititer*POLL_INTERVAL) \
@@ -242,7 +242,7 @@ def runjob(jobid=None, chanid=None, starttime=None, tzoffset=None):
                 #sys.exit(e.retcode)
 
 
-    sg = findfile('/'+rec.basename, rec.storagegroup, db=db)
+    sg = findfile(rec.basename, rec.storagegroup, db=db)
     if sg is None:
         print('Local access to recording not found.')
         sys.exit(1)
@@ -322,10 +322,10 @@ def runjob(jobid=None, chanid=None, starttime=None, tzoffset=None):
             print('Estimate bitrate failed falling back to constant rate factor encoding.\n')
             estimateBitrate = False
             duration_secs = 0
-
+        print(e.stderr.decode('utf-8'))
         # get framerate of mpeg2 video stream and detect if stream is HD
         r = re.compile('mpeg2video (.*?) fps,')
-        m = r.search(e.stderr)
+        m = r.search(e.stderr.decode('utf-8'))
         strval = m.group(1)
         if debug:
             print(strval)
@@ -414,8 +414,8 @@ def runjob(jobid=None, chanid=None, starttime=None, tzoffset=None):
         lines = f.readlines()
         # set initial progress to -1
         prev_progress=-1
-	framenum=0
-	fps=1.0
+        framenum=0
+        fps=1.0
         while t.is_alive():
             # read all output since last readline() call
             lines = f.readlines()
@@ -447,7 +447,7 @@ def runjob(jobid=None, chanid=None, starttime=None, tzoffset=None):
                             # fps = frames per second for the encoder
                             fps = float(values[1].split('=')[1])
                         except ValueError as e:
-			    print('ffmpeg status parse exception: "%s"' % e)
+                            print('ffmpeg status parse exception: "%s"' % e)
                             framenum = prev_framenum
                             fps = prev_fps
                             pass
@@ -573,10 +573,11 @@ def get_duration(db=None, rec=None, transcoder='/usr/bin/ffmpeg', filename=None)
     try:
         output = task('-i "%s"' % filename, '1>&2')
     except MythError as e:
+        err = e
         pass
 
     r = re.compile('Duration: (.*?), start')
-    m = r.search(e.stderr)
+    m = r.search(err.stderr.decode('utf-8'))
     if m:
         duration = m.group(1).split(':')
         duration_secs = float((int(duration[0])*60+int(duration[1]))*60+float(duration[2]))
@@ -586,8 +587,8 @@ def get_duration(db=None, rec=None, transcoder='/usr/bin/ffmpeg', filename=None)
             print('Duration %s' % duration)
             print('Duration in seconds "%s"' % duration_secs)
             print('Duration in milliseconds "%s"' % duration_msecs)
-        return duration_secs, e
-    return -1, e
+        return duration_secs, err
+    return -1, err
 
 def encode(jobid=None, db=None, job=None, 
            procqueue=None, preset='slow', 
@@ -605,7 +606,7 @@ def encode(jobid=None, db=None, job=None,
                       '-y',
                       # parameter de-interlacing filter
                       '-filter:v yadif=0:-1:1',
-		      # parameter to allow streaming content
+                      # parameter to allow streaming content
                       '-movflags faststart',
                       # parameter needed when hdhomerun prime mpeg2 files sometime repeat timestamps
                       '-vsync passthrough',
@@ -636,7 +637,7 @@ def encode(jobid=None, db=None, job=None,
 #                      '-metadata:s:s:0',
 #                      'language=%s' % language,
                       # we can control the number of encode threads (disabled)
-#                      '-threads 2',
+                      '-threads 4',
                       # output file parameter
                       '"%s"' % outfile,
                       # redirection of output to temporaryfile
@@ -685,7 +686,7 @@ def main():
         sys.exit(1)
 
 if __name__ == '__main__':
-#    debug = True
+    debug = True
 #    sys.stdout = open('/home/mythtv/logfile','a')
 #    print('Starting ', str(sys.argv))
     main()
